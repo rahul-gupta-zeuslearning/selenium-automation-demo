@@ -1,0 +1,8 @@
+{
+  "loginUrl": "https://my-qastg.mheducation.com/login",
+  "roles": {
+    "teacher": "SRTeacher",
+    "student": "SRStudent",
+    "admin": "SRAdmin"
+  }
+}

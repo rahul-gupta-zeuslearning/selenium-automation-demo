@@ -11,9 +11,10 @@ public class LoginLogoutTest extends BaseTest {
 
     @Test(description = "Verify user can log into the portal, verify dashboard rendered, and log out successfully")
     public void testLoginLogout() {
-        // 1. Load test data and environment credentials
-        String loginUrl = TestDataUtil.getProperty("LoginLogoutTestData", "loginUrl", "https://my-qastg.mheducation.com/login");
-        String username = TestDataUtil.getProperty("LoginLogoutTestData", "username", "SRTeacher");
+        // 1. Load test data from JSON and credentials from .env
+        String testDataFile = "LoginLogoutTestData";
+        String loginUrl = TestDataUtil.getJsonString(testDataFile, "loginUrl");
+        String username = TestDataUtil.getJsonString(testDataFile, "roles.teacher");
         String password = EnvReader.get("MHE_PASSWORD");
         if (password == null || password.trim().isEmpty()) {
             password = EnvReader.get("PASSWORD");
