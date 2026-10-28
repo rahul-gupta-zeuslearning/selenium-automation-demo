@@ -46,4 +46,12 @@ public class TestDataUtil {
         Properties props = loadTestData(fileName);
         return props.getProperty(key);
     }
+
+    /**
+     * Overloaded helper with default value
+     */
+    public static String getProperty(String fileName, String key, String defaultValue) {
+        Properties props = loadTestData(fileName);
+        return props.getProperty(key, defaultValue);
+    }
 }

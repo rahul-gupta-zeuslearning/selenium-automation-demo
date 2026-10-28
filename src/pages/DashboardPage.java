@@ -6,14 +6,14 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
-public class MheDashboardPage extends BasePage {
+public class DashboardPage extends BasePage {
 
     // Locators - using tag-agnostic selector to prevent failures if tag changes
     private final By myProgramsHeader = By.cssSelector("[data-automation-id='lib-ilp-my-classes-header']");
     private final By userMenuDropdown = By.cssSelector("[data-automation-id='user-menu-dropdown']");
     private final By logoutLink       = By.cssSelector("a[data-automation-id='log out']");
 
-    public MheDashboardPage(WebDriver driver) {
+    public DashboardPage(WebDriver driver) {
         super(driver);
     }
 

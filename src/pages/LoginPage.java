@@ -3,14 +3,14 @@ package pages;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 
-public class MheLoginPage extends BasePage {
+public class LoginPage extends BasePage {
 
     // Locators based on the provided HTML
     private final By usernameInput = By.cssSelector("[data-automation-id='login-username']");
     private final By passwordInput = By.cssSelector("[data-automation-id='login-password']");
     private final By loginButton   = By.cssSelector("button[query-id='login.submit']");
 
-    public MheLoginPage(WebDriver driver) {
+    public LoginPage(WebDriver driver) {
         super(driver);
     }
 

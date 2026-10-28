@@ -8,6 +8,9 @@ lib/
 bin/
 *.class
 
+# TestNG report directory
+test-output/
+
 # Environment & Sensitive Credentials
 .env
 *.env
