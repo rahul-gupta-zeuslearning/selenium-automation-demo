@@ -15,12 +15,9 @@ public class LoginLogoutTest extends BaseTest {
         String testDataFile = "LoginLogoutTestData";
         String loginUrl = TestDataUtil.getJsonString(testDataFile, "loginUrl");
         String username = TestDataUtil.getJsonString(testDataFile, "roles.teacher");
-        String password = EnvReader.get("MHE_PASSWORD");
-        if (password == null || password.trim().isEmpty()) {
-            password = EnvReader.get("PASSWORD");
-        }
+        String password = EnvReader.get("PASSWORD");
 
-        Assert.assertNotNull(password, "Password not found! Ensure MHE_PASSWORD is set in the .env file.");
+        Assert.assertNotNull(password, "Password not found! Ensure PASSWORD is set in the .env file.");
         Assert.assertFalse(password.trim().isEmpty(), "Password in .env cannot be empty.");
 
         // 2. Navigate to login portal
