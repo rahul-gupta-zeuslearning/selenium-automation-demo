@@ -1,9 +1,5 @@
 # Selenium Java Automation Framework (VS Code Edition)
 
-A lightweight, Page Object Model (POM) automated testing framework built with **Selenium WebDriver** and **TestNG** inside **Visual Studio Code**, designed to work cleanly in enterprise/restricted network environments without requiring Maven or Gradle.
-
----
-
 ## 📋 Table of Contents
 - [Prerequisites](#-prerequisites)
 - [Step-by-Step Setup Guide](#-step-by-step-setup-guide)
