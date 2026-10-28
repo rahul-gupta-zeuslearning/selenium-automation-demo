@@ -8,7 +8,6 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 
 public class DashboardPage extends BasePage {
 
-    // Locators - using tag-agnostic selector to prevent failures if tag changes
     private final By myProgramsHeader = By.cssSelector("[data-automation-id='lib-ilp-my-classes-header']");
     private final By userMenuDropdown = By.cssSelector("[data-automation-id='user-menu-dropdown']");
     private final By logoutLink       = By.cssSelector("a[data-automation-id='log out']");
@@ -17,10 +16,6 @@ public class DashboardPage extends BasePage {
         super(driver);
     }
 
-    /**
-     * Waits up to 20 seconds for the 'My Programs' heading to become visible,
-     * ensuring the Angular/SPA dashboard has completely rendered.
-     */
     public boolean isDashboardLoaded() {
         try {
             WebDriverWait extendedWait = new WebDriverWait(driver, Duration.ofSeconds(20));

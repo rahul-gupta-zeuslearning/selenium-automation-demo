@@ -5,7 +5,6 @@ import org.openqa.selenium.WebDriver;
 
 public class LoginPage extends BasePage {
 
-    // Locators based on the provided HTML
     private final By usernameInput = By.cssSelector("[data-automation-id='login-username']");
     private final By passwordInput = By.cssSelector("[data-automation-id='login-password']");
     private final By loginButton   = By.cssSelector("button[query-id='login.submit']");
