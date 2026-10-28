@@ -8,6 +8,11 @@ lib/
 bin/
 *.class
 
+# Environment & Sensitive Credentials
+.env
+*.env
+!.env.example
+
 # Package files
 *.jar
 *.war
