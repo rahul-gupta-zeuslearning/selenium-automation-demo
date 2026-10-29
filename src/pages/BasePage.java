@@ -57,7 +57,16 @@ public class BasePage {
         return driver.findElements(locator);
     }
 
-    // Page navigation helpers
+    // Page navigation & session helpers
+    public void navigateTo(String url) {
+        driver.get(url);
+    }
+
+    public void resetSessionAndNavigate(String url) {
+        driver.manage().deleteAllCookies();
+        driver.get(url);
+    }
+
     public String getPageTitle() {
         return driver.getTitle();
     }

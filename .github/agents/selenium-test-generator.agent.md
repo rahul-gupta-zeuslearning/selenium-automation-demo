@@ -16,6 +16,12 @@ Obtain or ask for:
 
 If the scenario is ambiguous about expected behavior, test data, or destructive actions, ask a focused question or record the assumption; do not invent expected behavior.
 
+Instead of stopping to ask for file paths or boilerplate choices, apply these defaults automatically unless the user specifies otherwise:
+- **Direct scenario input**: Accept scenarios pasted directly in chat or referenced from a file.
+- **Target test class**: Derive a PascalCase test class name from the scenario title under `src/tests/<ScenarioName>Test.java` (e.g., `src/tests/ClassRosterEnrollmentTest.java`).
+- **Page objects**: Reuse the existing page objects where steps match and create a dedicated feature page object under `src/pages/<Feature>Page.java` (e.g., `src/pages/RosterPage.java`) for new screens/modules.
+- **Test data file**: Each test class should have a dedicated JSON test-data file under `testdata/<ScenarioName>TestData.json` (e.g., `testdata/ClassRosterEnrollmentTestData.json`) for scenario-specific data. 
+
 ## Inspect before coding
 
 Read the scenario and relevant repository files before editing. At minimum inspect:
@@ -46,6 +52,28 @@ Reuse existing page objects and utilities. Extend them only when a reusable page
 - Keep each generated test focused on one scenario. Use one test method per scenario; do not combine unrelated scenarios.
 - Do not put environment-specific URLs, credentials, or secrets in Java source. Use existing configuration/test-data conventions.
 - Preserve the existing project's no-build-tool setup unless the user explicitly asks to migrate it.
+
+## Setup and Teardown Rules (Preconditions & Cleanup)
+
+When a scenario includes a **Setup / Precondition** section or a **Teardown / Cleanup** section, follow these 4 simple rules:
+
+1. **Use `@BeforeMethod` for Setup and `@AfterMethod(alwaysRun = true)` for Teardown**:
+   - `BaseTest` opens the Chrome browser before each test (`@BeforeMethod`) and closes it after each test (`@AfterMethod`).
+   - Do **not** use `@BeforeClass` or `@AfterClass` for UI steps—the browser is not open yet during `@BeforeClass`, and it is already closed during `@AfterClass`.
+2. **Do NOT name your methods `setUp()` or `tearDown()`**:
+   - `BaseTest` already uses the exact method names `setUp()` (to open Chrome) and `tearDown()` (to close Chrome).
+   - If you reuse those same names in your test class, you will overwrite `BaseTest` and Chrome won't open or close properly.
+   - Instead, pick a descriptive method name like `prepareClassData()` or `cleanUpClassRoster()`.
+3. **How the execution order works automatically**:
+   - When you give your setup/teardown methods their own names, TestNG automatically runs everything in the exact right order:
+     1. `BaseTest.setUp()` &rarr; Opens Chrome
+     2. Your `@BeforeMethod` &rarr; Runs pre-test setup steps (if any)
+     3. Your `@Test` &rarr; Runs the main test steps
+     4. Your `@AfterMethod(alwaysRun = true)` &rarr; Runs teardown cleanup steps
+     5. `BaseTest.tearDown()` &rarr; Closes Chrome
+4. **Always start Teardown from a fresh login page**:
+   - Always include `(alwaysRun = true)` on `@AfterMethod` so cleanup runs even if the main `@Test` fails halfway through.
+   - If the main test fails before logging out, the browser will still be logged in when Teardown starts. Whenever Teardown begins with `"1. Login as..."`, clear the browser session first (`loginPage.resetSessionAndNavigate(loginUrl)`) so Teardown always starts cleanly on the login page.
 
 ## Generation workflow
 

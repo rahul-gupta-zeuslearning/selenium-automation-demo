@@ -20,12 +20,12 @@ public class LoginLogoutTest extends BaseTest {
         Assert.assertNotNull(password, "Password not found! Ensure PASSWORD is set in the .env file.");
         Assert.assertFalse(password.trim().isEmpty(), "Password in .env cannot be empty.");
 
-        // 2. Navigate to login portal
+        // 2. Navigate to login portal via Page Object (no direct driver.get calls in test class)
+        LoginPage loginPage = new LoginPage(driver);
         System.out.println("Navigating to: " + loginUrl);
-        driver.get(loginUrl);
+        loginPage.navigateTo(loginUrl);
 
         // 3. Perform Login
-        LoginPage loginPage = new LoginPage(driver);
         System.out.println("Submitting credentials for user: " + username);
         loginPage.login(username, password);
 
@@ -33,19 +33,20 @@ public class LoginLogoutTest extends BaseTest {
         DashboardPage dashboardPage = new DashboardPage(driver);
         System.out.println("Waiting up to 20 seconds for dashboard to render...");
         boolean isLoaded = dashboardPage.isDashboardLoaded();
-        
-        Assert.assertTrue(isLoaded, 
-            "Dashboard failed to load 'My Programs' header within 20s. Current URL: " + driver.getCurrentUrl() + " | Page Title: " + driver.getTitle());
+
+        Assert.assertTrue(isLoaded,
+            "Dashboard failed to load 'My Programs' header within 20s. Current URL: "
+                + dashboardPage.getCurrentUrl() + " | Page Title: " + dashboardPage.getPageTitle());
         System.out.println("✅ Dashboard confirmed loaded! Header: " + dashboardPage.getDashboardHeaderText());
 
         // 5. Perform Logout
         System.out.println("Triggering logout...");
         dashboardPage.logout();
 
-        // 6. Verify redirection back to login
-        boolean isBackOnLogin = loginPage.isLoginPageDisplayed() || driver.getCurrentUrl().contains("login");
-        Assert.assertTrue(isBackOnLogin, 
-            "Did not redirect to login page after logout. Current URL: " + driver.getCurrentUrl());
+        // 6. Verify redirection back to login via Page Object helpers
+        boolean isBackOnLogin = loginPage.isLoginPageDisplayed() || loginPage.getCurrentUrl().contains("login");
+        Assert.assertTrue(isBackOnLogin,
+            "Did not redirect to login page after logout. Current URL: " + loginPage.getCurrentUrl());
         System.out.println("✅ Test Passed: Successfully logged in, verified dashboard, and logged out.");
     }
 }
