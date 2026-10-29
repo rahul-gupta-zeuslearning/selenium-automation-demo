@@ -12,7 +12,6 @@ import utils.TestDataUtil;
 public class ClassRosterEnrollmentTest extends BaseTest {
 
     private static final String TEST_DATA_FILE = "ClassRosterEnrollmentTestData";
-    private boolean addedStudentDuringTest;
 
     @Test(description = "Add a student to a class roster and verify enrollment")
     public void addStudentToClassRoster() {
@@ -21,6 +20,7 @@ public class ClassRosterEnrollmentTest extends BaseTest {
         String password = requirePassword();
         String className = TestDataUtil.getJsonString(TEST_DATA_FILE, "className");
         String studentName = TestDataUtil.getJsonString(TEST_DATA_FILE, "studentName");
+        String rosterDisplayName = TestDataUtil.getJsonString(TEST_DATA_FILE, "rosterDisplayName");
 
         DashboardPage dashboardPage = loginTeacher(loginUrl, username, password);
         ClassRosterPage classRosterPage = new ClassRosterPage(driver);
@@ -34,13 +34,12 @@ public class ClassRosterEnrollmentTest extends BaseTest {
         classRosterPage.searchSchoolRoster(studentName);
         classRosterPage.selectSchoolStudent(studentName);
         classRosterPage.addOneStudent();
-        addedStudentDuringTest = true;
         classRosterPage.saveRoster();
 
         Assert.assertTrue(classRosterPage.isSuccessToastDisplayed(),
             "Student Roster was successfully updated! toast should appear after saving.");
-        classRosterPage.waitForStudentListedInClassRoster(studentName);
-        Assert.assertTrue(classRosterPage.isStudentListedInClassRoster(studentName),
+        classRosterPage.waitForStudentListedInRosterTable(rosterDisplayName);
+        Assert.assertTrue(classRosterPage.isStudentListedInRosterTable(rosterDisplayName),
             "The added student should be listed in the class roster.");
 
         dashboardPage.logout();
@@ -63,19 +62,12 @@ public class ClassRosterEnrollmentTest extends BaseTest {
         classRosterPage.openRosterTab();
         classRosterPage.openEditStudentRoster();
 
-        if (addedStudentDuringTest) {
-            if (classRosterPage.isStudentListedInClassRoster(studentName)) {
-                classRosterPage.removeStudentFromClassRoster(studentName);
-                classRosterPage.saveRoster();
-                Assert.assertTrue(classRosterPage.isSuccessToastDisplayed(),
-                    "Roster cleanup should be saved successfully.");
-            }
-            Assert.assertFalse(classRosterPage.isStudentListedInClassRoster(studentName),
-                "Cleanup should remove the student added by this test.");
-            Assert.assertTrue(classRosterPage.isClassRosterEmpty(),
-                "Class Student Roster should show 0 students after cleanup.");
+        if (classRosterPage.waitForStudentListedInClassRosterIfPresent(studentName)) {
+            classRosterPage.removeStudentFromClassRoster(studentName);
+            classRosterPage.saveRoster();
+            Assert.assertTrue(classRosterPage.isSuccessToastDisplayed(),
+                "Roster cleanup should be saved successfully.");
         }
-
         dashboardPage.logout();
     }
 

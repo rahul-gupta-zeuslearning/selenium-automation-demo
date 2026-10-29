@@ -4,5 +4,6 @@
     "teacher": "RishanTeacher"
   },
   "className": "Sample class 2",
-  "studentName": "Sairaj Student"
+  "studentName": "Sairaj Student",
+  "rosterDisplayName": "Student, Sairaj"
 }
