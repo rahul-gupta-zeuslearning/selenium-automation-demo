@@ -1,9 +1,5 @@
 package tests;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
@@ -15,27 +11,33 @@ import utils.TestDataUtil;
 
 public class AddStudentsToRoasterTest extends BaseTest {
 
+    private static final String TEST_DATA_FILE = "AddStudentsToRoasterTestData";
+    private boolean originalRosterConfirmedEmpty;
+    private boolean cleanupCompleted;
     private String loginUrl;
     private String username;
     private String password;
     private String className;
     private String firstStudent;
     private String secondStudent;
-    private String successMessage;
-    private boolean emptyBaselineConfirmed;
 
-    @Test(description = "Add two students to the class roster and restore the original roster")
-    public void addStudentsToRoaster() {
-        String testDataFile = "AddStudentsToRoasterTestData";
-        loginUrl = TestDataUtil.getJsonString(testDataFile, "loginUrl");
-        username = TestDataUtil.getJsonString(testDataFile, "username");
-        className = TestDataUtil.getJsonString(testDataFile, "className");
-        firstStudent = TestDataUtil.getJsonString(testDataFile, "students.first");
-        secondStudent = TestDataUtil.getJsonString(testDataFile, "students.second");
-        successMessage = TestDataUtil.getJsonString(testDataFile, "successMessage");
+    @Test(description = "Add two students to Sample class, verify the roster, restore its original state, and sign out")
+    public void addStudentsToRosterAndRestoreOriginalState() {
+        loginUrl = TestDataUtil.getJsonString(TEST_DATA_FILE, "loginUrl");
+        username = TestDataUtil.getJsonString(TEST_DATA_FILE, "username");
+        className = TestDataUtil.getJsonString(TEST_DATA_FILE, "className");
+        firstStudent = TestDataUtil.getJsonString(TEST_DATA_FILE, "students.first");
+        secondStudent = TestDataUtil.getJsonString(TEST_DATA_FILE, "students.second");
+        String successMessage = TestDataUtil.getJsonString(TEST_DATA_FILE, "successMessage");
         password = EnvReader.get("PASSWORD");
 
-        Assert.assertNotNull(password, "Password not found! Ensure PASSWORD is set in .env or environment.");
+        Assert.assertNotNull(loginUrl, "loginUrl is missing from the scenario test data.");
+        Assert.assertNotNull(username, "username is missing from the scenario test data.");
+        Assert.assertNotNull(className, "className is missing from the scenario test data.");
+        Assert.assertNotNull(firstStudent, "students.first is missing from the scenario test data.");
+        Assert.assertNotNull(secondStudent, "students.second is missing from the scenario test data.");
+        Assert.assertNotNull(successMessage, "successMessage is missing from the scenario test data.");
+        Assert.assertNotNull(password, "PASSWORD is missing from .env or the environment.");
         Assert.assertFalse(password.trim().isEmpty(), "PASSWORD cannot be empty.");
 
         LoginPage loginPage = new LoginPage(driver);
@@ -44,168 +46,105 @@ public class AddStudentsToRoasterTest extends BaseTest {
 
         DashboardPage dashboardPage = new DashboardPage(driver);
         Assert.assertTrue(dashboardPage.isDashboardLoaded(),
-            "My Programs should be displayed after login. Current URL: "
-                + dashboardPage.getCurrentUrl());
+            "My Programs did not load. Current URL: " + dashboardPage.getCurrentUrl());
+        Assert.assertEquals(dashboardPage.getDashboardHeaderText(), "My Programs",
+            "The My Programs page should be displayed after sign-in.");
+        dashboardPage.openClassRoster(className);
 
         ClassRosterPage rosterPage = new ClassRosterPage(driver);
-        rosterPage.openClassStudentRoster(className);
-        rosterPage.openRosterTab();
-        Assert.assertTrue(rosterPage.isSavedClassRosterEmpty(),
-            "Sample class must have an empty student roster before any changes.");
-        emptyBaselineConfirmed = true;
-        rosterPage.openEditStudentRoster();
+        rosterPage.openStudentsRoster();
+        if (!rosterPage.isRosterEmpty()) {
+            Assert.assertTrue(rosterPage.savedRosterContainsExactly(firstStudent, secondStudent),
+                "Sample class is not empty and does not contain exactly the two known "
+                    + "scenario students; refusing to modify the roster.");
+            rosterPage.openEditor();
+            rosterPage.removeTargetStudentsIfPresent(firstStudent, secondStudent);
+            Assert.assertTrue(rosterPage.isClassRosterEmpty(),
+                "Could not safely restore the empty baseline from the previous scenario run.");
+            rosterPage.saveChanges();
+            Assert.assertTrue(rosterPage.isRosterEmpty(),
+                "Saving recovery cleanup did not restore the empty class roster.");
+        }
+        originalRosterConfirmedEmpty = true;
 
-        assertEligibleStudent(rosterPage, firstStudent);
+        rosterPage.openEditor();
+        Assert.assertTrue(rosterPage.isClassRosterEmpty(),
+            "The edit page must show 0 Students before adding the test students.");
+
+        rosterPage.searchForStudent(firstStudent);
         rosterPage.selectSchoolStudent(firstStudent);
-        Assert.assertEquals(rosterPage.getSelectedSchoolStudentNames(),
-            List.of(firstStudent), "Rahul should be the only selected school-roster result.");
-        Assert.assertEquals(rosterPage.getAddStudentsButtonText(), "Add 1 Student");
-        rosterPage.clickAddStudents();
-        Assert.assertTrue(rosterPage.isClassStudentRosterCountDisplayed("1 Student"),
-            "The staged class roster should show 1 Student after adding Rahul.");
-        rosterPage.waitForClassStudentRosterNames(List.of(firstStudent));
-        Assert.assertEquals(rosterPage.getClassStudentRosterNames(),
-            List.of(firstStudent), "Rahul should be the only staged class-roster student.");
+        rosterPage.addOneStudent();
+        Assert.assertTrue(rosterPage.classRosterContainsExactly(firstStudent),
+            "Class Student Roster should contain only " + firstStudent + " after the first add.");
 
-        assertEligibleStudent(rosterPage, secondStudent);
+        rosterPage.searchForStudent(secondStudent);
         rosterPage.selectSchoolStudent(secondStudent);
-        Assert.assertEquals(rosterPage.getSelectedSchoolStudentNames(),
-            List.of(secondStudent), "Sairaj should be the only selected school-roster result.");
-        Assert.assertEquals(rosterPage.getAddStudentsButtonText(), "Add 1 Student");
-        rosterPage.clickAddStudents();
-        Assert.assertTrue(rosterPage.isClassStudentRosterCountDisplayed("2 Students"),
-            "The staged class roster should show 2 Students after adding Sairaj.");
+        rosterPage.addOneStudent();
+        Assert.assertTrue(rosterPage.classRosterContainsExactly(firstStudent, secondStudent),
+            "Class Student Roster should contain exactly the two selected students before saving.");
 
-        rosterPage.waitForClassStudentRosterNames(Arrays.asList(firstStudent, secondStudent));
-        List<String> stagedStudentNames = rosterPage.getClassStudentRosterNames();
-        Assert.assertEquals(stagedStudentNames.size(), 2,
-            "Exactly two students should be staged before saving.");
-        Assert.assertEquals(new HashSet<>(stagedStudentNames),
-            new HashSet<>(Arrays.asList(firstStudent, secondStudent)),
-            "Only Rahul and Sairaj should be staged before saving.");
-        Assert.assertEquals(rosterPage.getAddStudentsButtonText(), "Add 0 Students",
-            "No additional school-roster students should remain selected for adding.");
-        Assert.assertTrue(rosterPage.isSaveButtonEnabled(),
-            "Save should be available after staging the two confirmed students.");
+        rosterPage.saveChanges();
+        Assert.assertTrue(rosterPage.isSuccessMessageDisplayed(successMessage),
+            "The expected roster success notification was not displayed after saving.");
+        Assert.assertTrue(rosterPage.savedRosterContainsExactly(firstStudent, secondStudent),
+            "The saved roster should display exactly the two test students.");
 
-        boolean successNotificationObserved =
-            rosterPage.clickSaveAndObserveNotification(successMessage);
-        Assert.assertTrue(rosterPage.isSavedStudentResultCountDisplayed(2),
-            "The saved class roster should report exactly two results.");
-        Assert.assertEquals(rosterPage.getSavedStudentRowCount(firstStudent), 1,
-            "Rahul should appear in exactly one saved roster row.");
-        Assert.assertEquals(rosterPage.getSavedStudentRowCount(secondStudent), 1,
-            "Sairaj should appear in exactly one saved roster row.");
-        Assert.assertTrue(successNotificationObserved,
-            "Expected success notification: " + successMessage);
+        rosterPage.openEditor();
+        rosterPage.removeTargetStudentsIfPresent(firstStudent, secondStudent);
+        Assert.assertTrue(rosterPage.isClassRosterEmpty(),
+            "The editor should show 0 Students after removing the two test students.");
+        rosterPage.saveChanges();
+        Assert.assertTrue(rosterPage.isRosterEmpty(),
+            "The original empty roster should be restored after cleanup.");
+        cleanupCompleted = true;
+
+        rosterPage.openUserMenuAndLogout();
+        boolean loginPageDisplayed = loginPage.isLoginPageDisplayed();
+        String currentUrl = loginPage.getCurrentUrl();
+        boolean loggedOutAlertDisplayed = loginPage.isLoggedOutAlertDisplayed();
+        Assert.assertTrue(loginPageDisplayed
+                && currentUrl.contains("logout=true")
+                && loggedOutAlertDisplayed,
+            "The login page and logged-out state should be displayed after sign-out. "
+                + "Login page displayed: " + loginPageDisplayed
+                + ", URL: " + currentUrl
+                + ", logged-out alert displayed: " + loggedOutAlertDisplayed);
     }
 
     @AfterMethod(alwaysRun = true)
-    public void restoreOnlyTestStudentsAndLogOut() {
-        if (loginUrl == null || loginUrl.trim().isEmpty()) {
+    public void cleanUpRosterAfterFailure() {
+        if (!originalRosterConfirmedEmpty || cleanupCompleted) {
             return;
         }
 
         LoginPage loginPage = new LoginPage(driver);
-        if (!emptyBaselineConfirmed) {
-            loginPage.resetSessionAndNavigate(loginUrl);
-            Assert.assertTrue(loginPage.isLoginPageDisplayed(),
-                "The browser should be returned to the logged-out login page.");
-            return;
-        }
+        loginPage.resetSessionAndNavigate(loginUrl);
+        loginPage.login(username, password);
 
         DashboardPage dashboardPage = new DashboardPage(driver);
+        if (!dashboardPage.isDashboardLoaded()) {
+            throw new IllegalStateException(
+                "Could not load My Programs to clean up the test roster.");
+        }
+        dashboardPage.openClassRoster(className);
+
         ClassRosterPage rosterPage = new ClassRosterPage(driver);
-        boolean authenticated = false;
-
-        try {
-            loginPage.resetSessionAndNavigate(loginUrl);
-            loginPage.login(username, password);
-
-            boolean dashboardLoaded = dashboardPage.isDashboardLoaded();
-            if (dashboardLoaded) {
-                authenticated = true;
-            }
-            Assert.assertTrue(dashboardLoaded,
-                "Cleanup login should reach My Programs. Current URL: "
-                    + dashboardPage.getCurrentUrl());
-
-            rosterPage.openClassStudentRoster(className);
-            rosterPage.openRosterTab();
-            rosterPage.openEditStudentRoster();
-
-            List<String> rosterBeforeCleanup = rosterPage.getClassStudentRosterNames();
-            List<String> targetStudents = Arrays.asList(firstStudent, secondStudent);
-            List<String> targetsPresent = new ArrayList<>();
-            for (String target : targetStudents) {
-                long occurrenceCount = rosterBeforeCleanup.stream()
-                    .filter(target::equals)
-                    .count();
-                Assert.assertTrue(occurrenceCount <= 1,
-                    "Cleanup stopped because the target appears more than once: " + target);
-                if (occurrenceCount == 1) {
-                    targetsPresent.add(target);
-                }
-            }
-
-            rosterPage.selectClassStudentRosterNames(targetsPresent);
-            List<String> selectedForRemoval = rosterPage.getSelectedClassStudentRosterNames();
-            Assert.assertEquals(new HashSet<>(selectedForRemoval),
-                new HashSet<>(targetsPresent),
-                "Cleanup may select only Rahul and Sairaj.");
-            Assert.assertEquals(selectedForRemoval.size(), targetsPresent.size(),
-                "Cleanup must not select duplicate or unrelated students.");
-
-            List<String> expectedRemaining = new ArrayList<>();
-            for (String student : rosterBeforeCleanup) {
-                if (!targetsPresent.contains(student)) {
-                    expectedRemaining.add(student);
-                }
-            }
-            if (!targetsPresent.isEmpty()) {
-                String expectedRemoveLabel = "Remove " + targetsPresent.size() + " "
-                    + (targetsPresent.size() == 1 ? "Student" : "Students");
-                Assert.assertEquals(
-                    rosterPage.getRemoveStudentsButtonText(targetsPresent.size()),
-                    expectedRemoveLabel,
-                    "The remove control must identify exactly the selected test students.");
-                rosterPage.clickRemoveStudents(targetsPresent.size());
-                rosterPage.waitForClassStudentRosterNames(expectedRemaining);
-                List<String> rosterAfterRemoval = rosterPage.getClassStudentRosterNames();
-                Assert.assertEquals(rosterAfterRemoval.size(), expectedRemaining.size(),
-                    "Cleanup should preserve the existing number of non-target students.");
-                Assert.assertEquals(new HashSet<>(rosterAfterRemoval),
-                    new HashSet<>(expectedRemaining),
-                    "Cleanup must preserve every non-target student.");
-            }
-
-            String expectedCount = expectedRemaining.size() == 1
-                ? "1 Student" : expectedRemaining.size() + " Students";
-            Assert.assertTrue(rosterPage.isClassStudentRosterCountDisplayed(expectedCount),
-                "The editor should show the remaining roster count before saving.");
-            rosterPage.clickSave();
-            Assert.assertTrue(rosterPage.isSavedClassRosterEmpty(),
-                "Cleanup must restore the original empty class roster.");
-        } finally {
-            if (authenticated) {
-                dashboardPage.logout();
-                Assert.assertTrue(loginPage.isLoginPageDisplayed()
-                        || loginPage.getCurrentUrl().contains("login"),
-                    "Cleanup should sign out and return to the login page. Current URL: "
-                        + loginPage.getCurrentUrl());
-            } else if (!authenticated) {
-                loginPage.resetSessionAndNavigate(loginUrl);
-                Assert.assertTrue(loginPage.isLoginPageDisplayed(),
-                    "Cleanup should leave the browser on the logged-out login page.");
+        rosterPage.openStudentsRoster();
+        if (!rosterPage.isRosterEmpty()) {
+            rosterPage.openEditor();
+            rosterPage.removeTargetStudentsIfPresent(firstStudent, secondStudent);
+            rosterPage.saveChanges();
+            if (!rosterPage.isRosterEmpty()) {
+                throw new IllegalStateException(
+                    "Cleanup did not restore the originally empty class roster.");
             }
         }
-    }
 
-    private void assertEligibleStudent(ClassRosterPage rosterPage, String studentName) {
-        rosterPage.searchSchoolRoster(studentName);
-        Assert.assertEquals(rosterPage.getSchoolStudentOptionCount(studentName), 1,
-            "Search should return exactly one option for " + studentName + ".");
-        Assert.assertTrue(rosterPage.isSchoolStudentOptionEnabledAndUnselected(studentName),
-            studentName + " should be enabled and unselected before adding.");
+        rosterPage.openUserMenuAndLogout();
+        if (!loginPage.isLoginPageDisplayed()
+            || !loginPage.getCurrentUrl().contains("/login")) {
+            throw new IllegalStateException("Cleanup logout did not return to the login page.");
+        }
+        cleanupCompleted = true;
     }
 }

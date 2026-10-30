@@ -28,6 +28,8 @@ This document is the single source of truth for the Selenium + TestNG automation
         └── TestDataUtil.java     # Reads JSON test data using Selenium's built-in parser
 ```
 
+The class-roster scenario adds `src/pages/ClassRosterPage.java`, `src/tests/AddStudentsToRoasterTest.java`, and `testdata/AddStudentsToRoasterTestData.json`; its suite entry is in `test-suites/testng.xml`.
+
 ## 2. Repository Conventions & POM Rules
 
 - **Tech stack**: Java + Selenium WebDriver + TestNG. Preserve the existing project's no-build-tool setup (`lib/` JARs) unless the user explicitly asks to migrate it.
@@ -83,13 +85,29 @@ Base class for all Page Objects (`DEFAULT_TIMEOUT = 10` seconds).
 - `public void clickLogin()`
 - `public void login(String username, String password)` — Enters credentials and clicks Login.
 - `public boolean isLoginPageDisplayed()` — Checks visibility of `[data-automation-id='login-username']`.
+- `public boolean isLoggedOutAlertDisplayed()` — Verifies the observed `You have been logged out.` alert.
 
 ### `src/pages/DashboardPage.java` (extends `BasePage`)
 - `public boolean isDashboardLoaded()` — Waits up to 60s for `[data-automation-id='lib-ilp-my-classes-header']`.
 - `public String getDashboardHeaderText()`
+- `public void openClassRoster(String className)` — Opens the named class's Classroom Actions menu and selects Manage Class Roster using observed accessible names.
 - `public void openUserMenu()`
 - `public void clickLogout()`
 - `public void logout()` — Opens user menu dropdown and clicks logout link.
+
+### `src/pages/ClassRosterPage.java` (extends `BasePage`)
+- `public void openStudentsRoster()` and `public void openEditor()` — Navigate to the student roster and roster editor.
+- `public boolean isRosterEmpty()` and `public boolean isClassRosterEmpty()` — Verify the live empty-roster states.
+- `public void searchForStudent(String studentName)`, `public void selectSchoolStudent(String studentName)`, and `public void addOneStudent()` — Search and stage an exact student result.
+- `public boolean classRosterContainsExactly(String... studentNames)` — Verifies the staged class-roster options and count.
+- `public void saveChanges()` and `public boolean savedRosterContainsExactly(String firstStudent, String secondStudent)` — Clear and dismiss search suggestions before saving; allow up to 30 seconds for the saved roster to render, then verify the two observed visible roster labels (`Student, First`) and result count.
+- `public boolean isSuccessMessageDisplayed(String message)` — Waits for the requested success notification.
+- `public void removeTargetStudentsIfPresent(String... studentNames)` — Removes only the named students and refuses to remove unrelated roster entries.
+- `public void openUserMenuAndLogout()` — Signs out through the observed account menu.
+
+### `src/tests/AddStudentsToRoasterTest.java`
+- `addStudentsToRosterAndRestoreOriginalState()` — Runs the planner-approved add/save/verify flow, asserts the specified success notification, restores the verified empty baseline, and signs out. Before starting, it may recover only a roster containing exactly the two named scenario students from an interrupted prior run; any other non-empty state is left untouched and fails safely.
+- `cleanUpRosterAfterFailure()` — When the test confirmed the initial roster was empty but did not complete cleanup, re-authenticates and removes only the two scenario students.
 
 ### `src/tests/BaseTest.java`
 Base class for all TestNG test classes.

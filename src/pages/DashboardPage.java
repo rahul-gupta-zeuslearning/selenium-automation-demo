@@ -1,7 +1,10 @@
 package pages;
 
 import java.time.Duration;
+import java.util.List;
 import org.openqa.selenium.By;
+import org.openqa.selenium.StaleElementReferenceException;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -44,5 +47,33 @@ public class DashboardPage extends BasePage {
     public void logout() {
         openUserMenu();
         clickLogout();
+    }
+
+    public void openClassRoster(String className) {
+        WebElement classroomActions = waitForAccessibleName(
+            By.cssSelector("button"), "Classroom Actions", className);
+        classroomActions.click();
+
+        WebElement manageRoster = waitForAccessibleName(
+            By.cssSelector("[role='menuitem']"), "Manage Class Roster", null);
+        manageRoster.click();
+    }
+
+    private WebElement waitForAccessibleName(By locator, String requiredText, String additionalText) {
+        return wait.ignoring(StaleElementReferenceException.class).until(currentDriver -> {
+            List<WebElement> elements = currentDriver.findElements(locator);
+            for (WebElement element : elements) {
+                if (!element.isDisplayed()) {
+                    continue;
+                }
+
+                String accessibleName = element.getAccessibleName();
+                if (accessibleName.contains(requiredText)
+                    && (additionalText == null || accessibleName.contains(additionalText))) {
+                    return element;
+                }
+            }
+            return null;
+        });
     }
 }
