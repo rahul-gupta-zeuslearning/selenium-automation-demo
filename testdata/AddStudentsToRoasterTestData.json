@@ -1,0 +1,10 @@
+{
+  "loginUrl": "https://my-qastg.mheducation.com/login?logout=true",
+  "username": "RishanTeacher",
+  "className": "Sample class",
+  "students": {
+    "first": "Rahul Student",
+    "second": "Sairaj Student"
+  },
+  "successMessage": "Student Roster was successfully updated!"
+}

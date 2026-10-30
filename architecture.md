@@ -85,7 +85,7 @@ Base class for all Page Objects (`DEFAULT_TIMEOUT = 10` seconds).
 - `public boolean isLoginPageDisplayed()` — Checks visibility of `[data-automation-id='login-username']`.
 
 ### `src/pages/DashboardPage.java` (extends `BasePage`)
-- `public boolean isDashboardLoaded()` — Waits up to 20s for `[data-automation-id='lib-ilp-my-classes-header']`.
+- `public boolean isDashboardLoaded()` — Waits up to 60s for `[data-automation-id='lib-ilp-my-classes-header']`.
 - `public String getDashboardHeaderText()`
 - `public void openUserMenu()`
 - `public void clickLogout()`
