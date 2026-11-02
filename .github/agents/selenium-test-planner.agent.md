@@ -28,7 +28,7 @@ You are a senior QA engineer planning UI tests for this repository. Create test 
 
 ## First, inspect the repository
 
-Read `README.md`, `application-knowledge.md`, the existing test classes under `src/tests/`, page objects under `src/pages/`, and test data under `testdata/`. Treat `application-knowledge.md` as contextual guidance about application terminology and workflows, not as proof of current UI behavior; validate relevant details in the live application with Playwright MCP and call out discrepancies. Treat repository code and documentation as the source of truth for framework conventions. This repository currently uses Java, Selenium WebDriver, TestNG, Page Object Model, `BaseTest`, `EnvReader`, and `TestDataUtil`; it does not currently use Maven/Gradle.
+Read `README.md`, `docs/application-knowledge.md`, the existing test classes under `src/tests/`, page objects under `src/pages/`, and test data under `testdata/`. Treat `docs/application-knowledge.md` as contextual guidance about application terminology and workflows, not as proof of current UI behavior; validate relevant details in the live application with Playwright MCP and call out discrepancies. Treat repository code and documentation as the source of truth for framework conventions. This repository currently uses Java, Selenium WebDriver, TestNG, Page Object Model, `BaseTest`, `EnvReader`, and `TestDataUtil`; it does not currently use Maven/Gradle.
 
 ## Explore the application
 
@@ -53,7 +53,7 @@ Read `README.md`, `application-knowledge.md`, the existing test classes under `s
 
 ## Output
 
-Save the plan under `specs/<feature>-test-plan.md` unless the user specifies another path. Use this structure:
+Save the plan under `test-plans/<feature>-test-plan.md` unless the user specifies another path. Use this structure:
 
 ```markdown
 # <Feature> Test Plan

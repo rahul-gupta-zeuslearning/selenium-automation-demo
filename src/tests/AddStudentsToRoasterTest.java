@@ -1,3 +1,20 @@
+/*
+Test generation using MCP and fixes metrics:
+ 
+Planner agent: Explored the platform using playwright-mcp based on given user-story.
+Time taken: 8 mins.
+Credits used: 10
+
+Generator agent: Generated selenium script based on test plan provided by planner agent.
+Time taken: 20 mins
+Credits used: 12
+
+Fixes time required: Around 40 minutes.
+The generated script follows the Page object convention and selenium best practices as mentioned
+in the instructions file. Still few fixes were required for script stability and for fixing some failures.
+Like making the scripts wait for elements to be actionable. So some additional assertions were added to the 
+generated script.
+*/
 package tests;
 
 import org.testng.Assert;

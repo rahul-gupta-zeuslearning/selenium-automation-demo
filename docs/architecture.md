@@ -9,7 +9,10 @@ This document is the single source of truth for the Selenium + TestNG automation
 ├── .env.example                  # Template for sensitive credentials (PASSWORD)
 ├── .gitignore                    # Excludes lib/, .vscode/, bin/, .env, and test-output/
 ├── README.md                     # Setup and compile/run documentation
-├── architecture.md               # Repository architecture, class inventory, and POM conventions
+├── docs/
+│   ├── application-knowledge.md  # Application terminology and workflow guidance
+│   ├── architecture.md           # Repository architecture and POM conventions
+│   └── inventory.md              # Existing classes and method signatures
 ├── lib/                          # Local dependency JARs (Selenium, TestNG)
 ├── test-suites/
 │   └── testng.xml                # TestNG XML suite runner configuration
@@ -40,7 +43,7 @@ The class-roster scenario adds `src/pages/ClassRosterPage.java`, `src/tests/AddS
   - **No direct Selenium/WebDriver code in test classes.** This is a hard requirement, not a preference. Test classes must not use `driver` except to pass it into page-object constructors. Do not call `driver.get()`, `driver.findElement()`, `driver.getCurrentUrl()`, `driver.getTitle()`, `driver.navigate()`, `driver.switchTo()`, `driver.manage()`, or any other Selenium WebDriver API directly from a test class. Do not import `org.openqa.selenium.*` into a test class. Navigation, URL/title reads, window handling, element interactions, and browser-state checks belong in page objects.
   - If a required action or state check is missing, add a cohesive method to the appropriate page object (or `BasePage` only when the operation is genuinely shared across pages) and call that method from the test. Avoid adding one-off methods to `BasePage`.
 - **Method reuse & discovery**:
-  - Before inventing a page-object method, search all existing page objects and `BasePage` (see Section 3 below) for an equivalent. Reuse the exact existing method name/signature when available; never assume a method exists without checking its implementation.
+  - Before inventing a page-object method, search all existing page objects and `BasePage` (see [inventory.md](./inventory.md)) for an equivalent. Reuse the exact existing method name/signature when available; never assume a method exists without checking its implementation.
   - If a needed method does not exist, add it to the most relevant page object and implement it using existing `BasePage` helpers and the repository's established selector/wait patterns.
 - **Test focus & assertions**:
   - Keep each generated test focused on one scenario. Use one `@Test(description = "...")` method per scenario; do not combine unrelated scenarios.
@@ -62,70 +65,9 @@ The class-roster scenario adds `src/pages/ClassRosterPage.java`, `src/tests/AddS
   - Do not put environment-specific URLs, credentials, or secrets in Java source.
   - Use `TestDataUtil` for non-secret JSON test data under `testdata/`; use `EnvReader` for secrets/configuration (`.env`). Do not silently break existing test data schemas.Also Each test class should have a dedicated JSON test-data file under `testdata/<ScenarioName>TestData.json` (e.g., `testdata/ClassRosterEnrollmentTestData.json`) for scenario-specific data. 
 
-## 3. Existing Class & Method Inventory
+See [inventory.md](./inventory.md) for existing classes and method signatures.
 
-Always check this inventory and reuse existing methods before writing new ones.
-
-### `src/pages/BasePage.java`
-Base class for all Page Objects (`DEFAULT_TIMEOUT = 10` seconds).
-- `protected WebElement waitForVisibility(By locator)`
-- `protected void click(By locator)`
-- `protected void sendKeys(By locator, String text)`
-- `protected String getText(By locator)`
-- `protected boolean isDisplayed(By locator)`
-- `protected List<WebElement> findElements(By locator)`
-- `public void navigateTo(String url)` — Navigates to the given URL (`driver.get(url)`).
-- `public void resetSessionAndNavigate(String url)` — Clears cookies (`driver.manage().deleteAllCookies()`) and navigates to `url`.
-- `public String getPageTitle()` — Returns `driver.getTitle()`.
-- `public String getCurrentUrl()` — Returns `driver.getCurrentUrl()`.
-
-### `src/pages/LoginPage.java` (extends `BasePage`)
-- `public void enterUsername(String username)`
-- `public void enterPassword(String password)`
-- `public void clickLogin()`
-- `public void login(String username, String password)` — Enters credentials and clicks Login.
-- `public boolean isLoginPageDisplayed()` — Checks visibility of `[data-automation-id='login-username']`.
-- `public boolean isLoggedOutAlertDisplayed()` — Verifies the observed `You have been logged out.` alert.
-
-### `src/pages/DashboardPage.java` (extends `BasePage`)
-- `public boolean isDashboardLoaded()` — Waits up to 60s for `[data-automation-id='lib-ilp-my-classes-header']`.
-- `public String getDashboardHeaderText()`
-- `public void openClassRoster(String className)` — Opens the named class's Classroom Actions menu and selects Manage Class Roster using observed accessible names.
-- `public void openUserMenu()`
-- `public void clickLogout()`
-- `public void logout()` — Opens user menu dropdown and clicks logout link.
-
-### `src/pages/ClassRosterPage.java` (extends `BasePage`)
-- `public void openStudentsRoster()` and `public void openEditor()` — Navigate to the student roster and roster editor.
-- `public boolean isRosterEmpty()` and `public boolean isClassRosterEmpty()` — Verify the live empty-roster states.
-- `public void searchForStudent(String studentName)`, `public void selectSchoolStudent(String studentName)`, and `public void addOneStudent()` — Search and stage an exact student result.
-- `public boolean classRosterContainsExactly(String... studentNames)` — Verifies the staged class-roster options and count.
-- `public void saveChanges()` and `public boolean savedRosterContainsExactly(String firstStudent, String secondStudent)` — Clear and dismiss search suggestions before saving; allow up to 30 seconds for the saved roster to render, then verify the two observed visible roster labels (`Student, First`) and result count.
-- `public boolean isSuccessMessageDisplayed(String message)` — Waits for the requested success notification.
-- `public void removeTargetStudentsIfPresent(String... studentNames)` — Removes only the named students and refuses to remove unrelated roster entries.
-- `public void openUserMenuAndLogout()` — Signs out through the observed account menu.
-
-### `src/tests/AddStudentsToRoasterTest.java`
-- `addStudentsToRosterAndRestoreOriginalState()` — Runs the planner-approved add/save/verify flow, asserts the specified success notification, restores the verified empty baseline, and signs out. Before starting, it may recover only a roster containing exactly the two named scenario students from an interrupted prior run; any other non-empty state is left untouched and fails safely.
-- `cleanUpRosterAfterFailure()` — When the test confirmed the initial roster was empty but did not complete cleanup, re-authenticates and removes only the two scenario students.
-
-### `src/tests/BaseTest.java`
-Base class for all TestNG test classes.
-- `protected WebDriver driver`
-- `@BeforeMethod public void setUp()` — Initializes `new ChromeDriver()` and maximizes window.
-- `@AfterMethod(alwaysRun = true) public void tearDown()` — Quits `driver` if non-null.
-
-### `src/utils/EnvReader.java`
-- `public static String get(String key)` — Reads from `.env` &rarr; `System.getenv(key)` &rarr; `System.getProperty(key)`.
-- `public static String get(String key, String defaultValue)`
-
-### `src/utils/TestDataUtil.java`
-- `public static Map<String, Object> loadJsonData(String fileName)`
-- `public static Object getJsonValue(String fileName, String keyPath)`
-- `public static String getJsonString(String fileName, String keyPath)` — Supports nested keys (e.g., `"roles.teacher"`).
-- `public static String getJsonString(String fileName, String keyPath, String defaultValue)`
-
-## 4. Build & Execution Commands
+## 3. Build & Execution Commands
 
 This repository uses local JARs in `lib/` without Maven or Gradle:
 

@@ -13,7 +13,7 @@ You are an expert in Selenium WebDriver, Java, TestNG, and maintainable UI autom
 Obtain or ask for:
 - The test plan path and exact scenario name/number.
 - The planner's browser-observation evidence for the scenario. Treat it as the source for live labels, attributes, locator candidates, and verified outcomes.
-- The application context in `application-knowledge.md`; treat it as supplemental workflow guidance, not as a substitute for the approved plan or observed browser evidence.
+- The application context in `docs/application-knowledge.md`; treat it as supplemental workflow guidance, not as a substitute for the approved plan or observed browser evidence.
 - The target Java test file path, if the user has a preferred location.
 - Any seed/precondition test or setup requirements.
 
@@ -25,16 +25,16 @@ Instead of stopping to ask for file paths or boilerplate choices, apply these de
 - **Page objects**: Reuse the existing page objects where steps match and create a dedicated feature page object under `src/pages/<Feature>Page.java` (e.g., `src/pages/RosterPage.java`) for new screens/modules.
 - **Test data file**: Each test class should have a dedicated JSON test-data file under `testdata/<ScenarioName>TestData.json` (e.g., `testdata/ClassRosterEnrollmentTestData.json`) for scenario-specific data. 
 
-## Architectural Source of Truth (`architecture.md`)
+## Architectural Source of Truth (`docs/architecture.md`)
 
-Before planning or writing any code, you MUST read **[architecture.md](../../architecture.md)** available in the repository root. It contains:
+Before planning or writing any code, you MUST read **[architecture.md](../../docs/architecture.md)** and the [class and method inventory](../../docs/inventory.md). Together, they contain:
 - The complete directory layout (`src/pages/`, `src/tests/`, `src/utils/`, `testdata/`, `test-suites/`).
 - The strict Page Object Model (POM) rules (zero `org.openqa.selenium.*` imports or direct `driver.*` calls in test classes) which must be followed.
 - The locator conventions (static `private final By` fields vs. dynamic parameterized `private By` helper methods).
 - The inventory of existing classes and method signatures (`BasePage`, `LoginPage`, `DashboardPage`, `BaseTest`, `EnvReader`, `TestDataUtil`).
 - The exact `javac` and `TestNG` compilation/execution commands.
 
-Follow every convention in `architecture.md` strictly. After inspecting `architecture.md`, only inspect specific source files in `src/` or `testdata/` that you plan to reuse or modify.
+Follow every convention in `architecture.md` strictly. After inspecting both documentation files, only inspect specific source files in `src/` or `testdata/` that you plan to reuse or modify.
 
 ## Setup and Teardown Rules (Preconditions & Cleanup)
 
@@ -60,7 +60,7 @@ When a scenario includes a **Setup / Precondition** section or a **Teardown / Cl
 
 ## Generation workflow
 
-1. Read architecture.md **[architecture.md](../../architecture.md)** and `application-knowledge.md` first, then read the full test scenario and the exact approved plan scenario, including any preconditions, setup, teardown, and browser-observation evidence. Use application knowledge to understand terminology and workflow; when it conflicts with the approved scenario or observed evidence, do not silently assume which is correct—report the discrepancy and resolve it before encoding behavior. Inspect only the relevant files in `src/` and `testdata/`.
+1. Read **[architecture.md](../../docs/architecture.md)**, the [class and method inventory](../../docs/inventory.md), and `docs/application-knowledge.md` first, then read the full test scenario and the exact approved plan scenario, including any preconditions, setup, teardown, and browser-observation evidence. Use application knowledge to understand terminology and workflow; when it conflicts with the approved scenario or observed evidence, do not silently assume which is correct—report the discrepancy and resolve it before encoding behavior. Inspect only the relevant files in `src/` and `testdata/`.
 2. Map every browser action and browser-state check to an existing page-object method. Search the repository before deciding a method is missing.
 3. If a required page-object method is missing, implement it in the appropriate page object (or `BasePage` only when truly shared) before writing the test.
 4. Implement or update the smallest necessary page object(s), then add the test method/class. Use only locator candidates supported by the planner's observed evidence or existing verified page objects; keep all Selenium locators, interactions, and state inspection in page objects.
