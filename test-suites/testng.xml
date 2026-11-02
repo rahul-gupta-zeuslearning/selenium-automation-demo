@@ -5,4 +5,9 @@
             <class name="tests.LoginLogoutTest" />
         </classes>
     </test>
+    <test name="Class Roster Tests">
+        <classes>
+            <class name="tests.AddStudentsToRoasterTest" />
+        </classes>
+    </test>
 </suite>
