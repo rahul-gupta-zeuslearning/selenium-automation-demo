@@ -1,3 +1,44 @@
+/*
+Agent used : selenium-test-generator
+Prompt used : 
+Test Scenario: Add student to class roster and verify enrollment
+ 
+1. Login as teacher in 
+2. From My Programs page, click on ClassRoom Action dropdown button for class "XXXX"
+3. Select "Manage Class Roster" from dropdown menu
+4. Select "Roster" from side navigation bar
+5. Click on "Edit Student Roster"
+6. In School Student Roster section, search for the student name
+7. Select the student from search results
+8. Click on "Add 1 Student" button
+9. Click "Save" button
+10. Verify "Student Roster was successfully updated!" toast banner appears
+11. Verify the added student name is listed in the students table
+12. Logout as teacher
+ 
+Teardown:
+ 
+1. Login as teacher
+2. From My Programs page, click on ClassRoom Action dropdown button for class "XXXX"
+3. Select "Manage Class Roster" from dropdown menu
+4. Select "Roster" from side navigation bar
+5. Click on "Edit Student Roster"
+6. Select all students from Class Student Roster list
+7. Click on "Remove Students" button
+8. Verify "0 students" text appears in Class Student Roster section
+9. Logout as teacher
+
+above is the test flow we have automate usiing selenium. You should not use playwright mcp here. automate it using the selected generator
+
+Credit used - 6.6
+Time taken - 17 mins
+
+Failure fixes - Manually provided the element structure of each failing element, from DevTools, to Copilot
+Credit used 7.75
+Time taken - 1 hr 
+
+*/
+
 package tests;
 
 import org.testng.Assert;
