@@ -3,6 +3,7 @@
     <test name="Login Logout Tests">
         <classes>
             <class name="tests.LoginLogoutTest" />
+            <class name="tests.ClassRosterEnrollmentTest" />
         </classes>
     </test>
 </suite>
